@@ -94,10 +94,7 @@ func daemonize() {
 
 	setupLog()
 
-	err = startServer()
-	if err != nil {
-		log.Fatal(err)
-	}
+	go startServer()
 
 	err = daemon.ServeSignals()
 	if err != nil {
@@ -125,18 +122,18 @@ func setupLog() {
 	}()
 }
 
-func startServer() error {
+func startServer() {
 	db, err := connectToDatabase()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 
-	log.Println("opened database", time.Now().Unix())
+	log.Println("database is opened", time.Now().Unix())
 
 	listener, err := net.Listen("tcp", "2323")
 
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer func(listener net.Listener) {
 		err := listener.Close()
@@ -148,12 +145,17 @@ func startServer() error {
 	log.Println("server is listening")
 
 	for {
+		select {
+		case <-stop:
+			break
+		}
 		conn, err := listener.Accept()
 		if err != nil {
-			return err
+			break
 		}
 		go handleConnection(conn, db)
 	}
+	done <- struct{}{}
 }
 
 func connectToDatabase() (*sql.DB, error) {
@@ -212,7 +214,6 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 	}
 	conn.Write(b)
 	conn.Close()
-	done <- struct{}{}
 }
 
 func saveToDatabase(db *sql.DB, spy Spy) error {
