@@ -167,7 +167,7 @@ func connectToDatabase() (*sql.DB, error) {
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalln(err)
 		}
 	}(db)
 	return db, nil
@@ -193,11 +193,11 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 		} else {
 			err = json.Unmarshal(buffer[:length], &spy)
 			if err != nil {
-				panic(err)
+				log.Fatalln(err)
 			}
 			err = saveToDatabase(db, spy)
 			if err != nil {
-				panic(err)
+				log.Fatalln(err)
 			}
 			break
 		}
@@ -205,12 +205,12 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 
 	action, err := selectAction(db, spy.hostUniqueId)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	b, err := json.Marshal(action)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	conn.Write(b)
 	conn.Close()
