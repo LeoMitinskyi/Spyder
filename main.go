@@ -3,19 +3,35 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"flag"
 	"fmt"
 	_ "github.com/lib/pq"
 	"github.com/sevlyar/go-daemon"
 	"log"
 	"net"
+	"os"
+	"syscall"
+	"time"
 )
 
 const (
 	host     = "127.0.0.1"
 	port     = 5432
-	user     = ""
-	password = ""
+	user     = "spyder"
+	password = "spyder"
 	dbname   = "tlc"
+)
+
+var (
+	signal = flag.String("s", "", `Send signal to the daemon: stop - shutdown`)
+)
+
+const logFileName = "sample.log"
+const pidFileName = "sample.pid"
+
+var (
+	stop = make(chan struct{})
+	done = make(chan struct{})
 )
 
 type Spy struct {
@@ -37,44 +53,76 @@ type Action struct {
 }
 
 func main() {
+	flag.Parse()
+	daemon.AddCommand(daemon.StringFlag(signal, "stop"), syscall.SIGTERM, termHandler)
 	log.Println("flag")
 	daemonize()
 }
 
 func daemonize() {
 	context := &daemon.Context{
-		PidFileName: "",
-		PidFilePerm: 0,
-		LogFileName: "",
-		LogFilePerm: 0,
-		WorkDir:     "",
-		Chroot:      "",
-		Env:         nil,
-		Args:        nil,
-		Umask:       0,
+		PidFileName: pidFileName,
+		PidFilePerm: 0644,
+		LogFileName: logFileName,
+		LogFilePerm: 0640,
+		WorkDir:     "./",
+		Args:        []string{"[go-daemon sample]"},
+		Umask:       027,
+	}
+
+	if len(daemon.ActiveFlags()) > 0 {
+		d, err := context.Search()
+		if err != nil {
+			log.Fatalf("Unable send signal to the daemon: %s", err.Error())
+		}
+
+		daemon.SendCommands(d)
+		return
 	}
 
 	d, err := context.Reborn()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 	if d != nil {
 		return
 	}
-	defer func(context *daemon.Context) {
-		err := context.Release()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(context)
+	defer context.Release()
 
 	log.Println("----------")
 	log.Println("daemon started")
+
+	setupLog()
 
 	err = startServer()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = daemon.ServeSignals()
+	if err != nil {
+		log.Printf("Error: %s", err.Error())
+	}
+	log.Println("daemon terminated")
+}
+
+func setupLog() {
+	lf, err := NewLogFile(logFileName, os.Stderr)
+	if err != nil {
+		log.Fatalf("Unable to create log file: %s", err.Error())
+	}
+
+	log.SetOutput(lf)
+
+	rotateLogSignal := time.Tick(30 * time.Second)
+	go func() {
+		for {
+			<-rotateLogSignal
+			if err := lf.Rotate(); err != nil {
+				log.Fatalf("Unable to rotate log: %s", err.Error())
+			}
+		}
+	}()
 }
 
 func startServer() error {
@@ -82,6 +130,8 @@ func startServer() error {
 	if err != nil {
 		return err
 	}
+
+	log.Println("opened database", time.Now().Unix())
 
 	listener, err := net.Listen("tcp", "2323")
 
@@ -122,44 +172,47 @@ func connectToDatabase() (*sql.DB, error) {
 }
 
 func handleConnection(conn net.Conn, db *sql.DB) {
+
+	log.Println("client connected: ", conn.RemoteAddr().String(), conn.LocalAddr().String())
+
 	var (
 		buffer = make([]byte, 1024)
 		spy    Spy
 	)
-close:
+
 	for {
-		for {
-			length, err := conn.Read(buffer)
+		length, err := conn.Read(buffer)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if length == 0 {
+			continue
+		} else {
+			err = json.Unmarshal(buffer[:length], &spy)
 			if err != nil {
-				break close
+				panic(err)
 			}
-
-			if length == 0 {
-				continue
-			} else {
-				err = json.Unmarshal(buffer[:length], &spy)
-				if err != nil {
-					panic(err)
-				}
-				err = saveToDatabase(db, spy)
-				if err != nil {
-					panic(err)
-				}
-				break
+			err = saveToDatabase(db, spy)
+			if err != nil {
+				panic(err)
 			}
+			break
 		}
-
-		action, err := selectAction(db, spy.hostUniqueId)
-		if err != nil {
-			panic(err)
-		}
-
-		b, err := json.Marshal(action)
-		if err != nil {
-			panic(err)
-		}
-		conn.Write(b)
 	}
+
+	action, err := selectAction(db, spy.hostUniqueId)
+	if err != nil {
+		panic(err)
+	}
+
+	b, err := json.Marshal(action)
+	if err != nil {
+		panic(err)
+	}
+	conn.Write(b)
+	conn.Close()
+	done <- struct{}{}
 }
 
 func saveToDatabase(db *sql.DB, spy Spy) error {
@@ -197,4 +250,13 @@ func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 	}
 	action.hostUniqueId = hostUniqueId
 	return action, nil
+}
+
+func termHandler(sig os.Signal) error {
+	log.Println("terminating...")
+	stop <- struct{}{}
+	if sig == syscall.SIGQUIT {
+		<-done
+	}
+	return daemon.ErrStop
 }
