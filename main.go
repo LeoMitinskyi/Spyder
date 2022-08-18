@@ -11,7 +11,6 @@ import (
 	"net"
 	"os"
 	"syscall"
-	"time"
 )
 
 const (
@@ -111,7 +110,7 @@ func setupLog() {
 
 	log.SetOutput(lf)
 
-	rotateLogSignal := time.Tick(30 * time.Second)
+	/*rotateLogSignal := time.Tick(30 * time.Second)
 	go func() {
 		for {
 			<-rotateLogSignal
@@ -119,7 +118,7 @@ func setupLog() {
 				log.Fatalf("Unable to rotate log: %s", err.Error())
 			}
 		}
-	}()
+	}()*/
 }
 
 func startServer() {
@@ -128,9 +127,9 @@ func startServer() {
 		log.Fatalln(err)
 	}
 
-	log.Println("database is opened", time.Now().Unix())
+	log.Println("database is opened")
 
-	listener, err := net.Listen("tcp", "15253")
+	listener, err := net.Listen("tcp", "localhost:15253")
 
 	if err != nil {
 		log.Fatalln(err)
@@ -145,10 +144,10 @@ func startServer() {
 	log.Println("server is listening")
 
 	for {
-		select {
+		/*select {
 		case <-stop:
 			break
-		}
+		}*/
 		conn, err := listener.Accept()
 		if err != nil {
 			break
