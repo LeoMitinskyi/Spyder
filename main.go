@@ -35,21 +35,21 @@ var (
 )
 
 type Spy struct {
-	appName        string // Имя приложения
-	appVersion     string // Версия приложения
-	bootUniqueId   string // Уникальный ID загрузки хоста
-	buildCpuArch   string // Архтитектура CPU для которой собиралась Qt
-	currentCpuArch string // Архитектура CPU хоста
-	kernelType     string // Тип ядра ОС
-	kernelVersion  string // Версия ядра ОС
-	hostName       string // Имя хоста
-	hostUniqueId   string // Уникальный ID хоста
-	productName    string // Название и версия ОС
+	AppName        string // Имя приложения
+	AppVersion     string // Версия приложения
+	BootUniqueId   string // Уникальный ID загрузки хоста
+	BuildCpuArch   string // Архтитектура CPU для которой собиралась Qt
+	CurrentCpuArch string // Архитектура CPU хоста
+	KernelType     string // Тип ядра ОС
+	KernelVersion  string // Версия ядра ОС
+	HostName       string // Имя хоста
+	HostUniqueId   string // Уникальный ID хоста
+	ProductName    string // Название и версия ОС
 }
 
 type Action struct {
-	hostUniqueId string // Уникальный ID хоста
-	action       string // Акция
+	HostUniqueId string // Уникальный ID хоста
+	Action       string // Акция
 }
 
 func main() {
@@ -130,7 +130,7 @@ func startServer() {
 
 	log.Println("database is opened", time.Now().Unix())
 
-	listener, err := net.Listen("tcp", "2323")
+	listener, err := net.Listen("tcp", "15253")
 
 	if err != nil {
 		log.Fatalln(err)
@@ -203,7 +203,7 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 		}
 	}
 
-	action, err := selectAction(db, spy.hostUniqueId)
+	action, err := selectAction(db, spy.HostUniqueId)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -228,8 +228,8 @@ func saveToDatabase(db *sql.DB, spy Spy) error {
                       "host_name", 
                       "host_unique_id", 
                       "product_name") values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-		spy.appName, spy.appVersion, spy.bootUniqueId, spy.buildCpuArch, spy.currentCpuArch, spy.kernelType,
-		spy.kernelVersion, spy.hostName, spy.hostUniqueId, spy.productName)
+		spy.AppName, spy.AppVersion, spy.BootUniqueId, spy.BuildCpuArch, spy.CurrentCpuArch, spy.KernelType,
+		spy.KernelVersion, spy.HostName, spy.HostUniqueId, spy.ProductName)
 	if err != nil {
 		return err
 	}
@@ -245,11 +245,11 @@ func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 	defer row.Close()
 	row.Next()
 
-	err = row.Scan(&action.action)
+	err = row.Scan(&action.Action)
 	if err != nil {
 		return action, err
 	}
-	action.hostUniqueId = hostUniqueId
+	action.HostUniqueId = hostUniqueId
 	return action, nil
 }
 
