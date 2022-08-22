@@ -163,12 +163,12 @@ func connectToDatabase() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func(db *sql.DB) {
+	/*defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
 			log.Fatalln(err)
 		}
-	}(db)
+	}(db)*/
 	return db, nil
 }
 
@@ -192,12 +192,16 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 		} else {
 			err = json.Unmarshal(buffer[:length], &spy)
 			if err != nil {
+				log.Println("unmarshalling error")
 				log.Fatalln(err)
 			}
+			
+			log.Println("info from client: ", spy)
 			err = saveToDatabase(db, spy)
 			if err != nil {
 				log.Fatalln(err)
 			}
+			log.Println("info from client successfully saved to db")
 			break
 		}
 	}
@@ -206,9 +210,11 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
+	log.Println("selected action for client: ", action)
+	
 	b, err := json.Marshal(action)
 	if err != nil {
+		log.Println("marshalling error")
 		log.Fatalln(err)
 	}
 	conn.Write(b)
@@ -230,6 +236,7 @@ func saveToDatabase(db *sql.DB, spy Spy) error {
 		spy.AppName, spy.AppVersion, spy.BootUniqueId, spy.BuildCpuArch, spy.CurrentCpuArch, spy.KernelType,
 		spy.KernelVersion, spy.HostName, spy.HostUniqueId, spy.ProductName)
 	if err != nil {
+		log.Println("error save to database")
 		return err
 	}
 	return nil
@@ -239,6 +246,7 @@ func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 	action := Action{}
 	row, err := db.Query(`select action from "spyder"."actions" where host_unique_id = $1`, hostUniqueId)
 	if err != nil {
+		log.Println("selection error")
 		return action, err
 	}
 	defer row.Close()
@@ -246,6 +254,7 @@ func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 
 	err = row.Scan(&action.Action)
 	if err != nil {
+		log.Println("scanning action error")
 		return action, err
 	}
 	action.HostUniqueId = hostUniqueId
