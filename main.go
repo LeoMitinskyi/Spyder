@@ -54,7 +54,6 @@ type Action struct {
 func main() {
 	flag.Parse()
 	daemon.AddCommand(daemon.StringFlag(signal, "stop"), syscall.SIGTERM, termHandler)
-	log.Println("flag")
 	daemonize()
 }
 
@@ -93,8 +92,9 @@ func daemonize() {
 
 	setupLog()
 
-	go startServer()
-
+	// go startServer()
+	startServer()
+	
 	err = daemon.ServeSignals()
 	if err != nil {
 		log.Printf("Error: %s", err.Error())
@@ -216,13 +216,13 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 }
 
 func saveToDatabase(db *sql.DB, spy Spy) error {
-	_, err := db.Exec(`insert into "Spy" (
+	_, err := db.Exec(`insert into "spyder"."spy" (
                       "app_name", 
                       "app_version", 
                       "boot_unique_id", 
                       "build_cpu_arch", 
                       "current_cpu_arch",
-          			  "kernel_type", 
+          	      "kernel_type", 
                       "kernel_version", 
                       "host_name", 
                       "host_unique_id", 
@@ -237,7 +237,7 @@ func saveToDatabase(db *sql.DB, spy Spy) error {
 
 func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 	action := Action{}
-	row, err := db.Query(`select action from "Actions" where host_unique_id = $1`, hostUniqueId)
+	row, err := db.Query(`select action from "spyder"."actions" where host_unique_id = $1`, hostUniqueId)
 	if err != nil {
 		return action, err
 	}
