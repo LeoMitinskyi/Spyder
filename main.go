@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
 	"flag"
@@ -193,10 +192,11 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 			continue
 		} else {
 			
-			buffer = bytes.Trim(buffer, "\xFE")
-			buffer = bytes.Trim(buffer, "\xDE")
+			tmp := string(buffer)
+			tmp = strings.ReplaceAll(tmp, "\xFE", "")
+			tmp = strings.ReplaceAll(tmp, "\xDE", "")
 			
-			err = json.Unmarshal(buffer, &spy)
+			err = json.Unmarshal([]byte(tmp), &spy)
 			if err != nil {
 				log.Println("unmarshalling error")
 				log.Println(err)
