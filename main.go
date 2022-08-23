@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/lib/pq"
+	_ "github.com/lib/pq"
 	"github.com/sevlyar/go-daemon"
 	"log"
 	"net"
