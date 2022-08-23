@@ -49,7 +49,7 @@ type Spy struct {
 
 type Action struct {
 	// HostUniqueId string `json:"host_unique_id"` // Уникальный ID хоста
-	Actions       string `json:"actions"`         // Акция
+	Actions       []string `json:"actions"`        // Акция
 }
 
 func main() {
