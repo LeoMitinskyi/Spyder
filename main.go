@@ -129,7 +129,7 @@ func startServer() {
 
 	log.Println("database is opened")
 
-	listener, err := net.Listen("tcp", "localhost:15253")
+	listener, err := net.Listen("tcp", ":15253")
 
 	if err != nil {
 		log.Fatalln(err)
