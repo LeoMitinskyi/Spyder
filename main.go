@@ -184,7 +184,7 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 	for {
 		length, err := conn.Read(buffer)
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 		}
 
 		if length == 0 {
@@ -193,13 +193,13 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 			err = json.Unmarshal(buffer[:length], &spy)
 			if err != nil {
 				log.Println("unmarshalling error")
-				log.Fatalln(err)
+				log.Println(err)
 			}
 			
 			log.Println("info from client: ", spy)
 			err = saveToDatabase(db, spy)
 			if err != nil {
-				log.Fatalln(err)
+				log.Println(err)
 			}
 			log.Println("info from client successfully saved to db")
 			break
@@ -208,14 +208,14 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 
 	action, err := selectAction(db, spy.HostUniqueId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	log.Println("selected action for client: ", action)
 	
 	b, err := json.Marshal(action)
 	if err != nil {
 		log.Println("marshalling error")
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	conn.Write(b)
 	conn.Close()
