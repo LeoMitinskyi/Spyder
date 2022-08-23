@@ -256,7 +256,7 @@ func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 		log.Println("selection error")
 		return action, err
 	}
-	defer row.Close()
+	defer rows.Close()
 	
 	var tmp []string
 	i := 0
