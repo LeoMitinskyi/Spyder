@@ -251,20 +251,27 @@ func saveToDatabase(db *sql.DB, spy Spy) error {
 
 func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 	action := Action{}
-	row, err := db.Query(`select action from "spyder"."actions" where host_unique_id = $1`, hostUniqueId)
+	rows, err := db.Query(`select action from "spyder"."actions" where host_unique_id = $1`, hostUniqueId)
 	if err != nil {
 		log.Println("selection error")
 		return action, err
 	}
 	defer row.Close()
 	row.Next()
-
-	err = row.Scan(pq.Array(&action.Actions))
-	if err != nil {
-		log.Println("scanning action error")
-		return action, err
+	
+	var tmp []string
+	i := 0
+	
+	for rows.Next() {
+		err = rows.Scan(&tmp[i])
+		if err != nil {
+			log.Println("scanning action error")
+		}
+		i++
 	}
-	// action.HostUniqueId = hostUniqueId
+	
+	action.Actions = tmp
+	
 	return action, nil
 }
 
