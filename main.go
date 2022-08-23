@@ -192,26 +192,10 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 			continue
 		} else {
 			
-			tmp := strings.ReplaceAll(string(buffer[:length]), "þ", "")
-			test := Spy{}
+			buffer = bytes.Trim(buffer, "\xFE")
+			buffer = bytes.Trim(buffer, "\xDE")
 			
-			err = json.Unmarshal([]byte(tmp), &test)
-			if err != nil {
-				log.Println("test unmarshalling error")
-				log.Println(err)
-			}
-			log.Println(test)
-			
-			test2 := Spy{}
-			err = json.Unmarshal(buffer, &test2)
-			if err != nil {
-				log.Println("test2 unmarshalling error")
-				log.Println(err)
-			}
-			log.Println(test2)
-			
-			
-			err = json.Unmarshal(buffer[:length], &spy)
+			err = json.Unmarshal(buffer, &spy)
 			if err != nil {
 				log.Println("unmarshalling error")
 				log.Println(err)
