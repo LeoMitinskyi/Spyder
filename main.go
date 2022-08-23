@@ -48,8 +48,8 @@ type Spy struct {
 }
 
 type Action struct {
-	HostUniqueId string `json:"host_unique_id"` // Уникальный ID хоста
-	Action       string `json:"action"`         // Акция
+	// HostUniqueId string `json:"host_unique_id"` // Уникальный ID хоста
+	Actions       string `json:"actions"`         // Акция
 }
 
 func main() {
@@ -258,12 +258,12 @@ func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 	defer row.Close()
 	row.Next()
 
-	err = row.Scan(&action.Action)
+	err = row.Scan(&action.Actions)
 	if err != nil {
 		log.Println("scanning action error")
 		return action, err
 	}
-	action.HostUniqueId = hostUniqueId
+	// action.HostUniqueId = hostUniqueId
 	return action, nil
 }
 
