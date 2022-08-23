@@ -195,6 +195,7 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 			tmp := string(buffer)
 			tmp = strings.ReplaceAll(tmp, "\xFE", "")
 			tmp = strings.ReplaceAll(tmp, "\xDE", "")
+			tmp = strings.ReplaceAll(tmp, "\x00", "")
 			
 			err = json.Unmarshal([]byte(tmp), &spy)
 			if err != nil {
