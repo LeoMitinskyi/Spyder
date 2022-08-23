@@ -258,18 +258,19 @@ func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 	}
 	defer rows.Close()
 	
-	var tmp []string
-	i := 0
+	
+	var arr []string
+	var tmp string
 	
 	for rows.Next() {
-		err = rows.Scan(&tmp[i])
+		err = row.Scan(&tmp)
 		if err != nil {
 			log.Println("scanning action error")
 		}
-		i++
+		arr = append(arr, tmp)
 	}
 	
-	action.Actions = tmp
+	action.Actions = arr
 	
 	return action, nil
 }
