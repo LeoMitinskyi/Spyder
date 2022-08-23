@@ -263,7 +263,7 @@ func selectAction(db *sql.DB, hostUniqueId string) (Action, error) {
 	var tmp string
 	
 	for rows.Next() {
-		err = row.Scan(&tmp)
+		err = rows.Scan(&tmp)
 		if err != nil {
 			log.Println("scanning action error")
 		}
