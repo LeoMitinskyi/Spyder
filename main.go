@@ -39,10 +39,10 @@ type Spy struct {
 	BootUniqueId   string `json:"boot_unique_id"`   // Уникальный ID загрузки хоста
 	BuildCpuArch   string `json:"build_cpu_arch"`   // Архтитектура CPU для которой собиралась Qt
 	CurrentCpuArch string `json:"current_cpu_arch"` // Архитектура CPU хоста
-	KernelType     string `json:"kernel_type"`      // Тип ядра ОС
-	KernelVersion  string `json:"kernel_version"`   // Версия ядра ОС
 	HostName       string `json:"host_name"`        // Имя хоста
 	HostUniqueId   string `json:"host_unique_id"`   // Уникальный ID хоста
+	KernelType     string `json:"kernel_type"`      // Тип ядра ОС
+	KernelVersion  string `json:"kernel_version"`   // Версия ядра ОС
 	ProductName    string `json:"product_name"`     // Название и версия ОС
 }
 
