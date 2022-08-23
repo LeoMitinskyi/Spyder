@@ -34,21 +34,21 @@ var (
 )
 
 type Spy struct {
-	AppName        string // Имя приложения
-	AppVersion     string // Версия приложения
-	BootUniqueId   string // Уникальный ID загрузки хоста
-	BuildCpuArch   string // Архтитектура CPU для которой собиралась Qt
-	CurrentCpuArch string // Архитектура CPU хоста
-	KernelType     string // Тип ядра ОС
-	KernelVersion  string // Версия ядра ОС
-	HostName       string // Имя хоста
-	HostUniqueId   string // Уникальный ID хоста
-	ProductName    string // Название и версия ОС
+	AppName        string `json:"app_name"`         // Имя приложения
+	AppVersion     string `json:"app_version"`      // Версия приложения
+	BootUniqueId   string `json:"boot_unique_id"`   // Уникальный ID загрузки хоста
+	BuildCpuArch   string `json:"build_cpu_arch"`   // Архтитектура CPU для которой собиралась Qt
+	CurrentCpuArch string `json:"current_cpu_arch"` // Архитектура CPU хоста
+	KernelType     string `json:"kernel_type"`      // Тип ядра ОС
+	KernelVersion  string `json:"kernel_version"`   // Версия ядра ОС
+	HostName       string `json:"host_name"`        // Имя хоста
+	HostUniqueId   string `json:"host_unique_id"`   // Уникальный ID хоста
+	ProductName    string `json:"product_name"`     // Название и версия ОС
 }
 
 type Action struct {
-	HostUniqueId string // Уникальный ID хоста
-	Action       string // Акция
+	HostUniqueId string `json:"host_unique_id"` // Уникальный ID хоста
+	Action       string `json:"action"`         // Акция
 }
 
 func main() {
