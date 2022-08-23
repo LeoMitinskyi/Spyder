@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 	"syscall"
 )
 
@@ -190,6 +191,26 @@ func handleConnection(conn net.Conn, db *sql.DB) {
 		if length == 0 {
 			continue
 		} else {
+			
+			tmp := strings.ReplaceAll(string(buffer[:length]), "þ", "")
+			test := Spy{}
+			
+			err = json.Unmarshal([]byte(tmp), &test)
+			if err != nil {
+				log.Println("test unmarshalling error")
+				log.Println(err)
+			}
+			log.Println(test)
+			
+			test2 := Spy{}
+			err = json.Unmarshal(buffer, &test2)
+			if err != nil {
+				log.Println("test2 unmarshalling error")
+				log.Println(err)
+			}
+			log.Println(test2)
+			
+			
 			err = json.Unmarshal(buffer[:length], &spy)
 			if err != nil {
 				log.Println("unmarshalling error")
